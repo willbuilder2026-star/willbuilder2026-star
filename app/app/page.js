@@ -138,7 +138,7 @@ function DeleteWillDialog({ will, onCancel, onDeleted }) {
   );
 }
 
-function WillRow({ will, onChanged }) {
+function WillRow({ will, linkedWill, onChanged }) {
   const [editing, setEditing] = useState(false);
   const [labelValue, setLabelValue] = useState(will.label || "");
   const [saving, setSaving] = useState(false);
@@ -174,6 +174,7 @@ function WillRow({ will, onChanged }) {
           <div>
             <div style={{ fontWeight: 700, fontSize: 14 }}>{willLabel(will)}</div>
             <div style={{ color: "#7a7266", marginTop: 3 }}>Started {new Date(will.created_at).toLocaleDateString()}</div>
+            {linkedWill && <div style={{ color: "#7a5225", marginTop: 3, fontWeight: 600 }}>🔗 Linked with {willLabel(linkedWill)}</div>}
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button style={{ ...smallBtn, background: "#f1e4d0", color: "#7a5225" }} onClick={() => setEditing(true)}>
@@ -295,7 +296,7 @@ export default function AppHome() {
             <p style={{ color: "#7a7266", fontSize: 14 }}>No Wills started yet — click the button above.</p>
           )}
           {wills.map((w) => (
-            <WillRow key={w.id} will={w} onChanged={loadWills} />
+            <WillRow key={w.id} will={w} linkedWill={w.linked_will_id ? wills.find((x) => x.id === w.linked_will_id) : null} onChanged={loadWills} />
           ))}
         </div>
 
