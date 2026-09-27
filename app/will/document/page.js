@@ -3,18 +3,52 @@
 import { useEffect, useState } from "react";
 import { fetchWillData, JURISDICTION_LABELS } from "../../../lib/willData";
 import { buildWillText, buildWillSections, openingLines } from "../../../lib/willText";
+import { buildFamilyMapModel, buildFamilyMapSvg } from "../../../lib/familyMap";
 import WillStageShell from "../../../components/WillStageShell";
 import WillPageFrame from "../../../components/WillPageFrame";
+import FamilyEstateMap from "../../../components/FamilyEstateMap";
 import { btn, btnSmall } from "../../../components/styles";
+
+// Turns an SVG string into a PNG data URL by drawing it into an offscreen
+// canvas — this is how the same map that's drawn live on Stage 9 ends up
+// as an image inside the PDF, rather than needing two separate drawings.
+function svgToPngDataUrl(svgString, scale = 2) {
+  return new Promise((resolve, reject) => {
+    const match = svgString.match(/width="(\d+(?:\.\d+)?)".*?height="(\d+(?:\.\d+)?)"/);
+    const width = match ? parseFloat(match[1]) : 640;
+    const height = match ? parseFloat(match[2]) : 360;
+    const img = new Image();
+    const blob = new Blob([svgString], { type: "image/svg+xml" });
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = width * scale;
+      canvas.height = height * scale;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve({ dataUrl: canvas.toDataURL("image/png"), width, height });
+    };
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
+    img.src = url;
+  });
+}
 
 function Document({ willId }) {
   const [text, setText] = useState("");
   const [built, setBuilt] = useState(null); // { jurisdiction, name, sections }
+  const [willData, setWillData] = useState(null);
   const [copied, setCopied] = useState(false);
   const [makingPdf, setMakingPdf] = useState(false);
 
   useEffect(() => {
     fetchWillData(willId).then((data) => {
+      setWillData(data);
       setText(buildWillText(data.will?.jurisdiction, data));
       setBuilt({
         jurisdiction: data.will?.jurisdiction,
@@ -62,6 +96,38 @@ function Document({ willId }) {
     doc.text(`(${jurLabel})`, pageWidth / 2, pageHeight / 2 - 6, { align: "center" });
     doc.setFontSize(13);
     doc.text(`This is the last Will and Testament of ${built.name}`, pageWidth / 2, pageHeight / 2 + 26, { align: "center" });
+
+    // ---- Family & Estate Summary page ----
+    const mapModel = buildFamilyMapModel(willData);
+    if (mapModel.beneficiaries.length > 0) {
+      doc.addPage();
+      let my = margin;
+      doc.setFont("times", "bold");
+      doc.setFontSize(16);
+      doc.text("FAMILY & ESTATE SUMMARY", pageWidth / 2, my, { align: "center" });
+      my += 26;
+      doc.setFont("times", "normal");
+      doc.setFontSize(10.5);
+      const summaryIntro = doc.splitTextToSize(
+        "A visual summary of who inherits what under this Will, generated from the answers given in this document pack. This page is for clarity only — it does not itself form part of the legal Will above.",
+        maxWidth
+      );
+      summaryIntro.forEach((line) => {
+        doc.text(line, margin, my);
+        my += 13;
+      });
+      my += 10;
+
+      try {
+        const svg = buildFamilyMapSvg(mapModel);
+        const { dataUrl, width, height } = await svgToPngDataUrl(svg, 2);
+        const drawWidth = Math.min(maxWidth, width);
+        const drawHeight = (height / width) * drawWidth;
+        doc.addImage(dataUrl, "PNG", margin, my, drawWidth, drawHeight);
+      } catch (e) {
+        doc.text("(Family & Estate Map could not be generated for this PDF.)", margin, my);
+      }
+    }
 
     // ---- Content pages ----
     doc.addPage();
@@ -158,6 +224,14 @@ function Document({ willId }) {
         Read it carefully — if anything looks wrong, go back and fix that stage rather than editing this text
         directly, so your answers stay in sync.
       </p>
+
+      <h3 style={{ fontSize: 15, margin: "18px 0 8px" }}>Family &amp; Estate Summary</h3>
+      <FamilyEstateMap data={willData} />
+      <p style={{ fontSize: 12.5, color: "#7a7266", margin: "8px 0 18px" }}>
+        This is included as its own page in the PDF, right after the cover page — it's for clarity only and isn't
+        part of the legal Will itself.
+      </p>
+
       <pre
         style={{
           background: "#faf7f1",
