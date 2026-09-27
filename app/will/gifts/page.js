@@ -11,7 +11,7 @@ export default function GiftsPage() {
         <WillPageFrame
           willId={willId}
           current={7}
-          desc="Named items or sums of money you want to leave to particular people — everything else goes to your residuary beneficiaries later."
+          desc="Anything specific you want to leave to a particular person: named items (a car, jewellery, a keepsake), an ISA, a savings or bank account, a specific sum of cash, or shares. Anything you don't list here just goes into the residuary estate later, split between your main beneficiaries."
         >
           <ListStage
             willId={willId}
@@ -19,7 +19,7 @@ export default function GiftsPage() {
             table="gifts"
             emptyLabel="No specific gifts added yet."
             fields={[
-              { key: "item", label: "Item or amount (e.g. 'my car', '£1,000')", type: "text" },
+              { key: "item", label: "Item, account or amount (e.g. 'my car', 'my Nationwide ISA', '£1,000 in cash')", type: "text" },
               { key: "beneficiary", label: "Who it goes to", type: "person" },
             ]}
           />
