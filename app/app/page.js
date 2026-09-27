@@ -34,6 +34,9 @@ const btn = {
 };
 const label = { fontSize: 13, fontWeight: 600, color: "#7a7266" };
 
+// The absolute URL Supabase should send people back to after confirming
+// their email. Must also be added to Supabase → Authentication →
+// URL Configuration → Redirect URLs.
 const EMAIL_REDIRECT_TO = "https://willbuilder2026-star.github.io/willbuilder2026-star/app/";
 
 export default function AppHome() {
@@ -137,7 +140,7 @@ export default function AppHome() {
                     Started {new Date(w.created_at).toLocaleDateString()}
                   </div>
                 </div>
-                
+                <a
                   href={`../will/?id=${w.id}`}
                   style={{
                     background: "#9c6b32",
