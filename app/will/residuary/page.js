@@ -11,7 +11,7 @@ import { input, label, btn, btnSmall, rowItem } from "../../../components/styles
 
 const CONTINGENCY_OPTIONS = [
   ["none", "No special provision — normal residuary rules apply"],
-  ["to_children", "Passes to their own children (name them below)"],
+  ["to_children", "Passes to specific people they choose (name them below)"],
   ["redistribute", "Redistributed among the other beneficiaries below"],
 ];
 
@@ -20,9 +20,12 @@ function contingencyLabel(value) {
   return found ? found[1] : value;
 }
 
-// The nested "name their children" editor for one beneficiary. Kept
-// separate from ListStage because it's scoped to a single beneficiary_id
-// rather than a whole will, and sits inline under that beneficiary's row.
+// The nested "name who this share passes to" editor for one beneficiary.
+// Whoever's named here doesn't have to be that beneficiary's own child —
+// it could be a niece, a nephew, a friend, anyone the person chooses.
+// Kept separate from ListStage because it's scoped to a single
+// beneficiary_id rather than a whole will, and sits inline under that
+// beneficiary's row.
 function BeneficiaryChildren({ willId, userId, beneficiaryId, beneficiaryShare, onChange }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,7 +64,7 @@ function BeneficiaryChildren({ willId, userId, beneficiaryId, beneficiaryShare, 
     e.preventDefault();
     setError("");
     if (!form.name) {
-      setError("Give this child a name.");
+      setError("Give this person a name.");
       return;
     }
     const payload = {
@@ -90,13 +93,15 @@ function BeneficiaryChildren({ willId, userId, beneficiaryId, beneficiaryShare, 
   return (
     <div style={{ marginTop: 10, paddingLeft: 14, borderLeft: "2px solid #e3d9c8" }}>
       <p style={{ fontSize: 12.5, color: "#7a7266", margin: "0 0 8px" }}>
-        Leave "Share" blank for a child to split what's left of this beneficiary's {beneficiaryShare}% equally with any
-        other children left blank — or give each an exact percentage if you'd rather split it unevenly.
+        Name anyone this share should pass to if this beneficiary dies before you — their own children, a niece or
+        nephew, a friend, anyone you choose. Leave "Share" blank for someone to split what's left of this
+        beneficiary's {beneficiaryShare}% equally with anyone else left blank — or give each an exact percentage if
+        you'd rather split it unevenly.
       </p>
       {loading ? (
         <p style={{ fontSize: 13, color: "#7a7266" }}>Loading…</p>
       ) : rows.length === 0 ? (
-        <p style={{ fontSize: 13, color: "#7a7266" }}>No children named yet.</p>
+        <p style={{ fontSize: 13, color: "#7a7266" }}>No one named yet.</p>
       ) : (
         rows.map((row) => (
           <div key={row.id} style={{ ...rowItem, marginTop: 8, borderColor: editingId === row.id ? "#9c6b32" : "#e3d9c8" }}>
@@ -116,7 +121,7 @@ function BeneficiaryChildren({ willId, userId, beneficiaryId, beneficiaryShare, 
       )}
       <form onSubmit={submit} style={{ marginTop: 10, display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
         <div>
-          <label style={{ ...label, marginBottom: 4 }}>Child's name</label>
+          <label style={{ ...label, marginBottom: 4 }}>Their name</label>
           <input style={{ ...input, margin: 0, width: 200 }} type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         </div>
         <div>
@@ -132,7 +137,7 @@ function BeneficiaryChildren({ willId, userId, beneficiaryId, beneficiaryShare, 
           />
         </div>
         <button type="submit" style={btnSmall}>
-          {editingId ? "Save" : "+ Add child"}
+          {editingId ? "Save" : "+ Add person"}
         </button>
         {editingId && (
           <button type="button" style={{ ...btnSmall, background: "#eee", color: "#4a5867" }} onClick={cancelEdit}>
@@ -300,8 +305,9 @@ function ResiduaryForm({ willId, userId }) {
         </select>
         {form.contingency === "to_children" && (
           <p style={{ fontSize: 12.5, color: "#7a7266", marginTop: -8, marginBottom: 12 }}>
-            You'll be able to name their children once you've saved this beneficiary. If nobody's named later on, it's
-            treated as "redistributed" instead — there's otherwise nobody for the share to go to.
+            You'll be able to name whoever this share should go to once you've saved this beneficiary — their own
+            children, a niece or nephew, anyone at all. If nobody's named later on, it's treated as "redistributed"
+            instead — there's otherwise nobody for the share to go to.
           </p>
         )}
 

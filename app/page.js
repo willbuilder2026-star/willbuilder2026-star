@@ -77,7 +77,7 @@ const stageBlurbs = {
 
 const principles = [
   { g: "F", h: "Family & Estate Map", p: "Generated live from your own answers — never drawn by hand — so it always matches your Will exactly." },
-  { g: "N", h: "Named contingencies", p: "Choose per beneficiary: their share passes to their own named children, or is redistributed among the others." },
+  { g: "N", h: "Named contingencies", p: "Choose per beneficiary: their share passes to specific people they choose — their own children, or anyone else — or is redistributed among the others." },
   { g: "P", h: "As many pensions as you need", p: "Add each pension separately, or skip the detail entirely if you've already nominated beneficiaries with your provider." },
   { g: "A", h: "No advice gate", p: "Flagging something that might benefit from outside advice never blocks completion — it's logged as an Estate Administration Note." },
   { g: "E", h: "Estate Administration Notes", p: "A separate, non-testamentary section for things executors may need to chase — overseas property, business interests, pension processes." },
@@ -150,7 +150,8 @@ export default function Landing() {
           <p style={{ color: "#4a5867", marginTop: 10, fontSize: "1.02rem" }}>
             Generated straight from the answers you give on Stage 9 — never drawn by hand — so it always matches your
             Will exactly. You (and your partner, if you have one) sit on the left; beneficiaries run left to right,
-            and a beneficiary's own named children branch off if you've chosen for their share to pass on.
+            and whoever you've chosen for a share to pass to — their own children, or anyone else — branches off on
+            the right.
           </p>
         </div>
         <div style={{ background: "#fff", border: "1px solid #e3d9c8", borderRadius: 16, overflow: "hidden" }}>

@@ -12,13 +12,14 @@ export default function ContingenciesPage() {
             <p>You've already covered the main contingency on the previous stage, for each residuary beneficiary:</p>
             <ul style={{ paddingLeft: 20 }}>
               <li>
-                Choosing <strong>"passes to their own children"</strong> (called a "per stirpes" gift) and naming those
-                children means their share is split between the people you named, on the Family &amp; Estate Map.
+                Choosing <strong>"passes to specific people they choose"</strong> and naming them means their share is
+                split between the people you named instead — this could be their own children, but doesn't have to
+                be; it can be anyone you choose. It shows on the Family &amp; Estate Map.
               </li>
               <li>
                 Choosing <strong>"redistributed among the other beneficiaries"</strong> means their share is shared out
                 proportionally among whoever else is still listed — this is also what happens automatically if
-                "passes to their own children" is chosen but nobody's actually been named.
+                "passes to specific people they choose" is picked but nobody's actually been named.
               </li>
               <li>
                 If your partner is set to inherit everything first, the residuary beneficiaries you listed only inherit if
