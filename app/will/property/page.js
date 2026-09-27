@@ -8,7 +8,7 @@ export default function PropertyPage() {
   return (
     <WillStageShell>
       {(willId, userId) => (
-        <WillPageFrame willId={willId} current={5} desc="Any homes or land you own, and how you hold them.">
+        <WillPageFrame willId={willId} current={5} desc="Any homes or land you own — including property abroad — and how you hold them.">
           <ListStage
             willId={willId}
             userId={userId}
