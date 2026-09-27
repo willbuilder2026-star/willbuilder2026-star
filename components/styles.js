@@ -1,6 +1,4 @@
 export const card = {
-  maxWidth: 640,
-  margin: "40px auto",
   background: "#fff",
   border: "1px solid #e3d9c8",
   borderRadius: 14,

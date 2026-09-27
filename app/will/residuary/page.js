@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
-import { card, input, label, btn, btnSmall, rowItem } from "../../../components/styles";
+import WillPageFrame from "../../../components/WillPageFrame";
+import PersonPicker from "../../../components/PersonPicker";
+import { input, label, btn, btnSmall, rowItem } from "../../../components/styles";
 
 function ResiduaryForm({ willId, userId }) {
   const [loading, setLoading] = useState(true);
@@ -31,10 +31,7 @@ function ResiduaryForm({ willId, userId }) {
 
   async function saveSettings(nextValue) {
     setSpouseFirst(nextValue);
-    await supabase.from("residuary_settings").upsert(
-      { will_id: willId, user_id: userId, spouse_first: nextValue },
-      { onConflict: "will_id" }
-    );
+    await supabase.from("residuary_settings").upsert({ will_id: willId, user_id: userId, spouse_first: nextValue }, { onConflict: "will_id" });
   }
 
   async function addBeneficiary(e) {
@@ -86,7 +83,7 @@ function ResiduaryForm({ willId, userId }) {
           <div key={b.id} style={rowItem}>
             <div>
               <strong>{b.name}</strong> — {b.share_percent}%
-              {b.deceased && <span style={{ color: "#a8541f" }}> (mark as predeceased — per stirpes to their children)</span>}
+              {b.deceased && <span style={{ color: "#a8541f" }}> (if they predecease me, their own children inherit instead)</span>}
             </div>
             <button type="button" style={btnSmall} onClick={() => removeBeneficiary(b.id)}>
               Remove
@@ -95,20 +92,13 @@ function ResiduaryForm({ willId, userId }) {
         ))
       )}
 
-      <div
-        style={{
-          marginTop: 10,
-          fontSize: 13.5,
-          fontWeight: 700,
-          color: totalOk ? "#3a7a4e" : "#a8541f",
-        }}
-      >
+      <div style={{ marginTop: 10, fontSize: 13.5, fontWeight: 700, color: totalOk ? "#3a7a4e" : "#a8541f" }}>
         Total: {total}% {totalOk ? "✓" : "— should add up to 100%"}
       </div>
 
       <form onSubmit={addBeneficiary} style={{ marginTop: 14, background: "#faf7f1", border: "1px solid #e3d9c8", borderRadius: 10, padding: 14 }}>
         <label style={label}>Beneficiary name</label>
-        <input style={input} type="text" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <PersonPicker willId={willId} value={form.name} onChange={(v) => setForm({ ...form, name: v })} />
 
         <label style={label}>Share (%)</label>
         <input
@@ -122,11 +112,7 @@ function ResiduaryForm({ willId, userId }) {
         />
 
         <label style={{ ...label, display: "flex", alignItems: "center", gap: 8, marginTop: 4 }}>
-          <input
-            type="checkbox"
-            checked={form.deceased}
-            onChange={(e) => setForm({ ...form, deceased: e.target.checked })}
-          />
+          <input type="checkbox" checked={form.deceased} onChange={(e) => setForm({ ...form, deceased: e.target.checked })} />
           Plan for this beneficiary predeceasing me (their share passes to their own children instead)
         </label>
 
@@ -143,11 +129,9 @@ export default function ResiduaryPage() {
   return (
     <WillStageShell>
       {(willId, userId) => (
-        <div style={card}>
-          <StageHeader n={9} title="Residuary Estate" desc="Who gets what's left of your estate, once specific and charitable gifts are accounted for." />
+        <WillPageFrame willId={willId} current={9} desc="Who gets what's left of your estate, once specific and charitable gifts are accounted for.">
           <ResiduaryForm willId={willId} userId={userId} />
-          <StageNav backHref={`../charity/?id=${willId}`} nextHref={`../contingencies/?id=${willId}`} />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );

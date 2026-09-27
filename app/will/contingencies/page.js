@@ -1,23 +1,19 @@
 "use client";
 
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
-import { card } from "../../../components/styles";
+import WillPageFrame from "../../../components/WillPageFrame";
 
 export default function ContingenciesPage() {
   return (
     <WillStageShell>
       {(willId) => (
-        <div style={card}>
-          <StageHeader n={10} title="Beneficiary Contingencies" desc="What happens if a beneficiary can't inherit." />
-
+        <WillPageFrame willId={willId} current={10} desc="What happens if a beneficiary can't inherit.">
           <div style={{ fontSize: 14.5, color: "#4a5867", lineHeight: 1.7 }}>
             <p>You've already covered the main contingency on the previous stage:</p>
             <ul style={{ paddingLeft: 20 }}>
               <li>
                 Ticking <strong>"plan for this beneficiary predeceasing me"</strong> on a residuary beneficiary means their
-                share passes to their own children instead (this is called a "per stirpes" gift), rather than being
+                share passes to their own children instead (called a "per stirpes" gift), rather than being
                 redistributed among the other beneficiaries.
               </li>
               <li>
@@ -31,9 +27,7 @@ export default function ContingenciesPage() {
               isn't missed, and mention it if you get this Will reviewed.
             </p>
           </div>
-
-          <StageNav backHref={`../residuary/?id=${willId}`} nextHref={`../admin-notes/?id=${willId}`} />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );

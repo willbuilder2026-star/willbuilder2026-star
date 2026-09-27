@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { input, label, btnSmall, rowItem } from "./styles";
+import PersonPicker from "./PersonPicker";
 
 // Generic "add / list / delete" form for a Supabase table keyed by will_id.
-// fields: [{ key, label, type: "text"|"date"|"textarea"|"select", options?: [[value,label],...], default? }]
+// fields: [{ key, label, type: "text"|"date"|"textarea"|"select"|"person", options?, default? }]
 export default function ListStage({ willId, userId, table, fields, heading, emptyLabel = "Nothing added yet." }) {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +86,9 @@ export default function ListStage({ willId, userId, table, fields, heading, empt
         {fields.map((f) => (
           <div key={f.key}>
             <label style={label}>{f.label}</label>
-            {f.type === "textarea" ? (
+            {f.type === "person" ? (
+              <PersonPicker willId={willId} value={form[f.key]} onChange={(v) => setForm({ ...form, [f.key]: v })} />
+            ) : f.type === "textarea" ? (
               <textarea
                 style={{ ...input, minHeight: 60 }}
                 value={form[f.key]}

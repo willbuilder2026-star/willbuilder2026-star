@@ -1,22 +1,18 @@
 "use client";
 
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
+import WillPageFrame from "../../../components/WillPageFrame";
 import ListStage from "../../../components/ListStage";
-import { card } from "../../../components/styles";
 
 export default function UpdatePage() {
   return (
     <WillStageShell>
       {(willId, userId) => (
-        <div style={card}>
-          <StageHeader
-            n={15}
-            title="Updating"
-            desc="You get 30 days of free changes after signing. After that, updates are available at a low cost — log any change you want to make here."
-          />
-
+        <WillPageFrame
+          willId={willId}
+          current={15}
+          desc="You get 30 days of free changes after signing. After that, updates are available at a low cost — log any change you want to make here."
+        >
           <ListStage
             willId={willId}
             userId={userId}
@@ -38,7 +34,7 @@ export default function UpdatePage() {
           />
 
           <p style={{ fontSize: 13.5, color: "#7a7266", marginTop: 4 }}>
-            To make the actual change, go back to the relevant stage above and update your answers, then revisit{" "}
+            To make the actual change, go back to the relevant stage and update your answers, then revisit{" "}
             <a href={`../document/?id=${willId}`} style={{ color: "#7a5225" }}>
               Document Pack
             </a>{" "}
@@ -48,9 +44,7 @@ export default function UpdatePage() {
             </a>{" "}
             to produce and sign an updated version.
           </p>
-
-          <StageNav backHref={`../signing/?id=${willId}`} nextHref={`../../app/`} nextLabel="Back to your Wills" />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );

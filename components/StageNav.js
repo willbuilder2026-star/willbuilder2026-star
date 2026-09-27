@@ -1,8 +1,12 @@
+import { STAGES, stageHref, dashboardHref } from "../lib/stages";
 import { btn } from "./styles";
 
-// backHref / nextHref: full relative hrefs already including ?id=...
-// nextLabel defaults to "Continue →"
-export default function StageNav({ backHref, backLabel = "← Back", nextHref, nextLabel = "Continue →" }) {
+// Every page gets the same wording automatically: "← Back to Stage X: …"
+// and "Save & Continue to Stage Y: … →", driven off the shared STAGES list.
+export default function StageNav({ current, base, willId, nextLabel }) {
+  const backStage = STAGES.find((s) => s.n === current - 1);
+  const nextStage = STAGES.find((s) => s.n === current + 1);
+
   return (
     <div
       style={{
@@ -12,21 +16,25 @@ export default function StageNav({ backHref, backLabel = "← Back", nextHref, n
         marginTop: 24,
         paddingTop: 18,
         borderTop: "1px solid #e3d9c8",
+        flexWrap: "wrap",
+        gap: 12,
       }}
     >
-      {backHref ? (
-        <a href={backHref} style={{ color: "#7a5225", fontSize: 14 }}>
-          {backLabel}
+      {backStage ? (
+        <a href={stageHref(base, backStage.slug, willId)} style={{ color: "#7a5225", fontSize: 14 }}>
+          ← Back to Stage {backStage.n}: {backStage.label}
         </a>
       ) : (
         <span />
       )}
-      {nextHref && (
-        <a
-          href={nextHref}
-          style={{ ...btn, textDecoration: "none", display: "inline-block" }}
-        >
-          {nextLabel}
+
+      {nextStage ? (
+        <a href={stageHref(base, nextStage.slug, willId)} style={{ ...btn, textDecoration: "none", display: "inline-block" }}>
+          {nextLabel || `Save & Continue to Stage ${nextStage.n}: ${nextStage.label}`} →
+        </a>
+      ) : (
+        <a href={dashboardHref(base)} style={{ ...btn, textDecoration: "none", display: "inline-block" }}>
+          Finish — back to your Wills
         </a>
       )}
     </div>

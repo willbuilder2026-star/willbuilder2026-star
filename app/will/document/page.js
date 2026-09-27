@@ -2,22 +2,26 @@
 
 import { useEffect, useState } from "react";
 import { fetchWillData, JURISDICTION_LABELS } from "../../../lib/willData";
-import { buildWillText } from "../../../lib/willText";
+import { buildWillText, buildWillSections, openingLines } from "../../../lib/willText";
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
-import { card, btn, btnSmall } from "../../../components/styles";
+import WillPageFrame from "../../../components/WillPageFrame";
+import { btn, btnSmall } from "../../../components/styles";
 
 function Document({ willId }) {
   const [text, setText] = useState("");
-  const [jurisdiction, setJurisdiction] = useState(null);
+  const [built, setBuilt] = useState(null); // { jurisdiction, name, sections }
   const [copied, setCopied] = useState(false);
   const [makingPdf, setMakingPdf] = useState(false);
 
   useEffect(() => {
     fetchWillData(willId).then((data) => {
-      setJurisdiction(data.will?.jurisdiction);
       setText(buildWillText(data.will?.jurisdiction, data));
+      setBuilt({
+        jurisdiction: data.will?.jurisdiction,
+        name: data.about?.full_name || "",
+        opening: openingLines(data.about),
+        sections: buildWillSections(data.will?.jurisdiction, data),
+      });
     });
   }, [willId]);
 
@@ -47,26 +51,89 @@ function Document({ willId }) {
     const pageHeight = doc.internal.pageSize.getHeight();
     const maxWidth = pageWidth - margin * 2;
     const lineHeight = 15;
+    const jurLabel = JURISDICTION_LABELS[built.jurisdiction] || built.jurisdiction;
 
+    // ---- Cover page: centered horizontally AND vertically ----
+    doc.setFont("times", "bold");
+    doc.setFontSize(24);
+    doc.text("LAST WILL AND TESTAMENT", pageWidth / 2, pageHeight / 2 - 36, { align: "center" });
+    doc.setFont("times", "normal");
+    doc.setFontSize(15);
+    doc.text(`(${jurLabel})`, pageWidth / 2, pageHeight / 2 - 6, { align: "center" });
+    doc.setFontSize(13);
+    doc.text(`This is the last Will and Testament of ${built.name}`, pageWidth / 2, pageHeight / 2 + 26, { align: "center" });
+
+    // ---- Content pages ----
+    doc.addPage();
+    let y = margin;
+
+    function runningHeading() {
+      doc.setFont("times", "bold");
+      doc.setFontSize(14);
+      doc.text("LAST WILL AND TESTAMENT", pageWidth / 2, y, { align: "center" });
+      y += 18;
+      doc.setFont("times", "normal");
+      doc.setFontSize(11);
+      doc.text(`(${jurLabel})`, pageWidth / 2, y, { align: "center" });
+      y += 16;
+      doc.text(`This is the last Will and Testament of ${built.name}`, pageWidth / 2, y, { align: "center" });
+      y += 26;
+    }
+    runningHeading();
+
+    function ensureSpace(extra = 0) {
+      if (y + extra > pageHeight - margin) {
+        doc.addPage();
+        y = margin;
+      }
+    }
+
+    // opening lines (born / address), left-aligned under the centered heading
     doc.setFont("times", "normal");
     doc.setFontSize(11);
+    built.opening.slice(1).forEach((line) => {
+      ensureSpace(lineHeight);
+      doc.text(line, margin, y);
+      y += lineHeight;
+    });
+    y += 10;
 
-    let y = margin;
-    const rawLines = text.split("\n");
-
-    rawLines.forEach((rawLine) => {
-      const isHeading = /^[0-9]+\.\s/.test(rawLine) || rawLine === rawLine.toUpperCase();
-      doc.setFont("times", isHeading && rawLine.trim() ? "bold" : "normal");
-
-      const wrapped = doc.splitTextToSize(rawLine || " ", maxWidth);
-      wrapped.forEach((line) => {
-        if (y > pageHeight - margin) {
-          doc.addPage();
-          y = margin;
-        }
-        doc.text(line, margin, y);
-        y += lineHeight;
-      });
+    built.sections.forEach((s) => {
+      if (s.type === "para" && s.text === "") {
+        y += lineHeight * 0.6;
+        return;
+      }
+      if (s.type === "heading") {
+        ensureSpace(lineHeight * 2);
+        y += 8;
+        doc.setFont("times", "bold");
+        doc.setFontSize(12);
+        doc.splitTextToSize(s.text, maxWidth).forEach((line) => {
+          ensureSpace(lineHeight);
+          doc.text(line, margin, y);
+          y += lineHeight;
+        });
+        y += 2;
+      } else if (s.type === "bullet") {
+        doc.setFont("times", "normal");
+        doc.setFontSize(11);
+        const bulletIndent = 16;
+        const wrapped = doc.splitTextToSize(s.text, maxWidth - bulletIndent);
+        wrapped.forEach((line, i) => {
+          ensureSpace(lineHeight);
+          if (i === 0) doc.text("•", margin, y);
+          doc.text(line, margin + bulletIndent, y);
+          y += lineHeight;
+        });
+      } else {
+        doc.setFont("times", "normal");
+        doc.setFontSize(11);
+        doc.splitTextToSize(s.text, maxWidth).forEach((line) => {
+          ensureSpace(lineHeight);
+          doc.text(line, margin, y);
+          y += lineHeight;
+        });
+      }
     });
 
     doc.save("my-will-draft.pdf");
@@ -78,9 +145,9 @@ function Document({ willId }) {
   return (
     <div>
       <p style={{ fontSize: 13.5, color: "#7a7266" }}>
-        This is a first draft built from your answers, for {JURISDICTION_LABELS[jurisdiction] || jurisdiction}. Read
-        it carefully — if anything looks wrong, go back and fix that stage rather than editing this text directly,
-        so your answers stay in sync.
+        This is a first draft built from your answers, for {JURISDICTION_LABELS[built?.jurisdiction] || built?.jurisdiction}.
+        Read it carefully — if anything looks wrong, go back and fix that stage rather than editing this text
+        directly, so your answers stay in sync.
       </p>
       <pre
         style={{
@@ -110,8 +177,9 @@ function Document({ willId }) {
         </button>
       </div>
       <p style={{ fontSize: 12.5, color: "#7a7266", marginTop: 12 }}>
-        The PDF is for printing and signing (see the next stage) — it isn't a substitute for the physical, signed
-        paper original once you've witnessed it.
+        The PDF opens with a title page, then the full document with dates shown UK-style (DD/MM/YYYY) and each
+        list bulleted — it's for printing and signing (see the next stage), not a substitute for the physical,
+        signed paper original once witnessed.
       </p>
     </div>
   );
@@ -121,11 +189,9 @@ export default function DocumentPage() {
   return (
     <WillStageShell>
       {(willId) => (
-        <div style={card}>
-          <StageHeader n={13} title="Document Pack" desc="Your draft Will document, generated from everything you've entered." />
+        <WillPageFrame willId={willId} current={13} desc="Your draft Will document, generated from everything you've entered." nextLabel="Continue to Stage 14: Signing">
           <Document willId={willId} />
-          <StageNav backHref={`../review/?id=${willId}`} nextHref={`../signing/?id=${willId}`} nextLabel="Continue to signing →" />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );

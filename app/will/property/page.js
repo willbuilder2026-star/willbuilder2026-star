@@ -1,18 +1,14 @@
 "use client";
 
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
+import WillPageFrame from "../../../components/WillPageFrame";
 import ListStage from "../../../components/ListStage";
-import { card } from "../../../components/styles";
 
 export default function PropertyPage() {
   return (
     <WillStageShell>
       {(willId, userId) => (
-        <div style={card}>
-          <StageHeader n={5} title="Property" desc="Any homes or land you own, and how you hold them." />
-
+        <WillPageFrame willId={willId} current={5} desc="Any homes or land you own, and how you hold them.">
           <ListStage
             willId={willId}
             userId={userId}
@@ -33,12 +29,7 @@ export default function PropertyPage() {
               },
             ]}
           />
-
-          <StageNav
-            backHref={`../executors/?id=${willId}`}
-            nextHref={`../pensions/?id=${willId}`}
-          />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );

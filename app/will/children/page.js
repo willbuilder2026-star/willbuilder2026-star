@@ -1,22 +1,18 @@
 "use client";
 
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
+import WillPageFrame from "../../../components/WillPageFrame";
 import ListStage from "../../../components/ListStage";
-import { card } from "../../../components/styles";
 
 export default function ChildrenPage() {
   return (
     <WillStageShell>
       {(willId, userId) => (
-        <div style={card}>
-          <StageHeader
-            n={3}
-            title="Children & Guardians"
-            desc="Your children, and who should look after them if they're still under 18 when you die."
-          />
-
+        <WillPageFrame
+          willId={willId}
+          current={3}
+          desc="Your children, and who should look after them if they're still under 18 when you die."
+        >
           <ListStage
             heading="Children"
             emptyLabel="No children added yet."
@@ -28,7 +24,6 @@ export default function ChildrenPage() {
               { key: "date_of_birth", label: "Date of birth", type: "date" },
             ]}
           />
-
           <ListStage
             heading="Guardians"
             emptyLabel="No guardians added yet."
@@ -40,12 +35,7 @@ export default function ChildrenPage() {
               { key: "address", label: "Guardian's address", type: "textarea" },
             ]}
           />
-
-          <StageNav
-            backHref={`../partner/?id=${willId}`}
-            nextHref={`../executors/?id=${willId}`}
-          />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );

@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { fetchWillData, JURISDICTION_LABELS } from "../../../lib/willData";
+import { formatUKDate } from "../../../lib/willText";
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
-import { card } from "../../../components/styles";
+import WillPageFrame from "../../../components/WillPageFrame";
 
 const section = { marginTop: 22 };
 const sectionTitle = { display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 15, fontWeight: 700 };
@@ -35,8 +34,11 @@ function Review({ willId }) {
         </div>
         <div style={body}>
           {about?.full_name || "—"}
-          {about?.date_of_birth ? `, born ${about.date_of_birth}` : ""}
+          {about?.date_of_birth ? `, born ${formatUKDate(about.date_of_birth)}` : ""}
           {about?.marital_status ? ` · ${about.marital_status.replace("_", " ")}` : ""}
+          <br />
+          {about?.address || ""}
+          {about?.postcode ? `, ${about.postcode}` : ""}
         </div>
       </div>
 
@@ -97,9 +99,7 @@ function Review({ willId }) {
         <div style={sectionTitle}>
           Residuary estate <a href={`../residuary/?id=${willId}`} style={editLink}>Edit</a>
         </div>
-        <div style={body}>
-          {beneficiaries.length ? beneficiaries.map((b) => `${b.name} (${b.share_percent}%)`).join(", ") : "None added"}
-        </div>
+        <div style={body}>{beneficiaries.length ? beneficiaries.map((b) => `${b.name} (${b.share_percent}%)`).join(", ") : "None added"}</div>
       </div>
 
       <div style={section}>
@@ -116,11 +116,9 @@ export default function ReviewPage() {
   return (
     <WillStageShell>
       {(willId) => (
-        <div style={card}>
-          <StageHeader n={12} title="Final Review" desc="Check everything together before moving on to your document." />
+        <WillPageFrame willId={willId} current={12} desc="Check everything together before moving on to your document." nextLabel="Looks right — continue to Stage 13: Document Pack">
           <Review willId={willId} />
-          <StageNav backHref={`../admin-notes/?id=${willId}`} nextHref={`../document/?id=${willId}`} nextLabel="Looks right — continue →" />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );

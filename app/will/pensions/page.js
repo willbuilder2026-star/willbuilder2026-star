@@ -3,11 +3,10 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
-import { card, input, label, btn } from "../../../components/styles";
+import WillPageFrame from "../../../components/WillPageFrame";
+import { input, label, btn } from "../../../components/styles";
 
-function PensionsForm({ willId, userId }) {
+function PensionsForm({ willId, userId, onDirtyChange }) {
   const [loadingRow, setLoadingRow] = useState(true);
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState("");
@@ -21,13 +20,15 @@ function PensionsForm({ willId, userId }) {
     setLoadingRow(true);
     const { data, error } = await supabase.from("pensions").select("*").eq("will_id", willId).maybeSingle();
     if (!error && data) {
-      setForm({
-        simple_mode: data.simple_mode,
-        provider: data.provider || "",
-        notes: data.notes || "",
-      });
+      setForm({ simple_mode: data.simple_mode, provider: data.provider || "", notes: data.notes || "" });
     }
     setLoadingRow(false);
+    onDirtyChange(false);
+  }
+
+  function update(patch) {
+    setForm((f) => ({ ...f, ...patch }));
+    onDirtyChange(true);
   }
 
   async function handleSave(e) {
@@ -47,6 +48,7 @@ function PensionsForm({ willId, userId }) {
       setMessage(error.message);
     } else {
       setSaved(true);
+      onDirtyChange(false);
       setMessage("Saved.");
       setTimeout(() => setSaved(false), 1800);
     }
@@ -57,11 +59,7 @@ function PensionsForm({ willId, userId }) {
   return (
     <form onSubmit={handleSave}>
       <label style={label}>How do you want to handle pensions?</label>
-      <select
-        style={input}
-        value={form.simple_mode ? "simple" : "detailed"}
-        onChange={(e) => setForm({ ...form, simple_mode: e.target.value === "simple" })}
-      >
+      <select style={input} value={form.simple_mode ? "simple" : "detailed"} onChange={(e) => update({ simple_mode: e.target.value === "simple" })}>
         <option value="simple">Keep it simple — most pensions pass via a separate nomination form, not your Will</option>
         <option value="detailed">I want to add some notes about my pension(s) for reference</option>
       </select>
@@ -75,19 +73,10 @@ function PensionsForm({ willId, userId }) {
       {!form.simple_mode && (
         <>
           <label style={label}>Pension provider(s)</label>
-          <input
-            style={input}
-            type="text"
-            value={form.provider}
-            onChange={(e) => setForm({ ...form, provider: e.target.value })}
-          />
+          <input style={input} type="text" value={form.provider} onChange={(e) => update({ provider: e.target.value })} />
 
           <label style={label}>Notes</label>
-          <textarea
-            style={{ ...input, minHeight: 80 }}
-            value={form.notes}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          />
+          <textarea style={{ ...input, minHeight: 80 }} value={form.notes} onChange={(e) => update({ notes: e.target.value })} />
         </>
       )}
 
@@ -101,16 +90,15 @@ function PensionsForm({ willId, userId }) {
   );
 }
 
-export default function PensionsPage() {
+function PensionsPageInner({ willId, userId }) {
+  const [dirty, setDirty] = useState(false);
   return (
-    <WillStageShell>
-      {(willId, userId) => (
-        <div style={card}>
-          <StageHeader n={6} title="Pensions & Death Benefits" />
-          <PensionsForm willId={willId} userId={userId} />
-          <StageNav backHref={`../property/?id=${willId}`} nextHref={`../gifts/?id=${willId}`} />
-        </div>
-      )}
-    </WillStageShell>
+    <WillPageFrame willId={willId} current={6} unsaved={dirty}>
+      <PensionsForm willId={willId} userId={userId} onDirtyChange={setDirty} />
+    </WillPageFrame>
   );
+}
+
+export default function PensionsPage() {
+  return <WillStageShell>{(willId, userId) => <PensionsPageInner willId={willId} userId={userId} />}</WillStageShell>;
 }

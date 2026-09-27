@@ -5,9 +5,8 @@ import { supabase } from "../../../lib/supabaseClient";
 import { fetchWillData, JURISDICTION_LABELS } from "../../../lib/willData";
 import { buildWillText } from "../../../lib/willText";
 import WillStageShell from "../../../components/WillStageShell";
-import StageHeader from "../../../components/StageHeader";
-import StageNav from "../../../components/StageNav";
-import { card, input, label, btn } from "../../../components/styles";
+import WillPageFrame from "../../../components/WillPageFrame";
+import { input, label, btn } from "../../../components/styles";
 
 const instructions = {
   england_wales: [
@@ -58,10 +57,7 @@ function Signing({ willId }) {
     const data = await fetchWillData(willId);
     const documentText = buildWillText(data.will?.jurisdiction, data);
 
-    const { count } = await supabase
-      .from("executed_wills")
-      .select("id", { count: "exact", head: true })
-      .eq("will_id", willId);
+    const { count } = await supabase.from("executed_wills").select("id", { count: "exact", head: true }).eq("will_id", willId);
 
     const { error: insertError } = await supabase.from("executed_wills").insert({
       will_id: willId,
@@ -120,11 +116,9 @@ export default function SigningPage() {
   return (
     <WillStageShell>
       {(willId) => (
-        <div style={card}>
-          <StageHeader n={14} title="Signing" desc="Clear instructions for signing and witnessing correctly." />
+        <WillPageFrame willId={willId} current={14} desc="Clear instructions for signing and witnessing correctly.">
           <Signing willId={willId} />
-          <StageNav backHref={`../document/?id=${willId}`} nextHref={`../update/?id=${willId}`} nextLabel="Continue →" />
-        </div>
+        </WillPageFrame>
       )}
     </WillStageShell>
   );
