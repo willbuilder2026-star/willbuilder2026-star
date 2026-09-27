@@ -4,13 +4,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "../../../lib/supabaseClient";
 import WillStageShell from "../../../components/WillStageShell";
 import WillPageFrame from "../../../components/WillPageFrame";
+import ListStage from "../../../components/ListStage";
 import { input, label, btn } from "../../../components/styles";
 
-function PensionsForm({ willId, userId, onDirtyChange }) {
+function ModeForm({ willId, userId, onDirtyChange, simpleMode, setSimpleMode }) {
   const [loadingRow, setLoadingRow] = useState(true);
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState("");
-  const [form, setForm] = useState({ simple_mode: true, provider: "", notes: "" });
 
   useEffect(() => {
     load();
@@ -19,29 +19,16 @@ function PensionsForm({ willId, userId, onDirtyChange }) {
   async function load() {
     setLoadingRow(true);
     const { data, error } = await supabase.from("pensions").select("*").eq("will_id", willId).maybeSingle();
-    if (!error && data) {
-      setForm({ simple_mode: data.simple_mode, provider: data.provider || "", notes: data.notes || "" });
-    }
+    if (!error && data) setSimpleMode(data.simple_mode);
     setLoadingRow(false);
     onDirtyChange(false);
-  }
-
-  function update(patch) {
-    setForm((f) => ({ ...f, ...patch }));
-    onDirtyChange(true);
   }
 
   async function handleSave(e) {
     e.preventDefault();
     setMessage("");
     const { error } = await supabase.from("pensions").upsert(
-      {
-        will_id: willId,
-        user_id: userId,
-        simple_mode: form.simple_mode,
-        provider: form.simple_mode ? null : form.provider,
-        notes: form.simple_mode ? null : form.notes,
-      },
+      { will_id: willId, user_id: userId, simple_mode: simpleMode },
       { onConflict: "will_id" }
     );
     if (error) {
@@ -59,26 +46,24 @@ function PensionsForm({ willId, userId, onDirtyChange }) {
   return (
     <form onSubmit={handleSave}>
       <label style={label}>How do you want to handle pensions?</label>
-      <select style={input} value={form.simple_mode ? "simple" : "detailed"} onChange={(e) => update({ simple_mode: e.target.value === "simple" })}>
+      <select
+        style={input}
+        value={simpleMode ? "simple" : "detailed"}
+        onChange={(e) => {
+          setSimpleMode(e.target.value === "simple");
+          onDirtyChange(true);
+        }}
+      >
         <option value="simple">Keep it simple — most pensions pass via a separate nomination form, not your Will</option>
-        <option value="detailed">I want to add some notes about my pension(s) for reference</option>
+        <option value="detailed">I want to add my pension(s) for reference</option>
       </select>
 
       <p style={{ fontSize: 13, color: "#7a7266", marginTop: -6, marginBottom: 14 }}>
         Most UK pensions are paid at the pension provider's discretion to whoever you name on a separate
         "expression of wishes" or nomination form — they don't usually pass through your Will. It's worth
-        checking your nomination is up to date directly with your provider(s).
+        checking your nomination is up to date directly with your provider(s). If you have more than one
+        pension, you can add each one separately below.
       </p>
-
-      {!form.simple_mode && (
-        <>
-          <label style={label}>Pension provider(s)</label>
-          <input style={input} type="text" value={form.provider} onChange={(e) => update({ provider: e.target.value })} />
-
-          <label style={label}>Notes</label>
-          <textarea style={{ ...input, minHeight: 80 }} value={form.notes} onChange={(e) => update({ notes: e.target.value })} />
-        </>
-      )}
 
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button style={btn} type="submit">
@@ -92,9 +77,23 @@ function PensionsForm({ willId, userId, onDirtyChange }) {
 
 function PensionsPageInner({ willId, userId }) {
   const [dirty, setDirty] = useState(false);
+  const [simpleMode, setSimpleMode] = useState(true);
   return (
     <WillPageFrame willId={willId} current={6} unsaved={dirty}>
-      <PensionsForm willId={willId} userId={userId} onDirtyChange={setDirty} />
+      <ModeForm willId={willId} userId={userId} onDirtyChange={setDirty} simpleMode={simpleMode} setSimpleMode={setSimpleMode} />
+      {!simpleMode && (
+        <ListStage
+          heading="Your pension(s)"
+          emptyLabel="No pensions added yet."
+          willId={willId}
+          userId={userId}
+          table="pension_entries"
+          fields={[
+            { key: "provider", label: "Pension provider / scheme name", type: "text" },
+            { key: "notes", label: "Notes (optional)", type: "textarea" },
+          ]}
+        />
+      )}
     </WillPageFrame>
   );
 }

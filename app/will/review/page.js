@@ -20,7 +20,7 @@ function Review({ willId }) {
 
   if (!data) return <p>Loading your answers…</p>;
 
-  const { will, about, partner, guardians, properties, pensions, gifts, charityGifts, beneficiaries, adminNotes } = data;
+  const { will, about, partner, guardians, properties, pensions, pensionEntries, gifts, charityGifts, beneficiaries, adminNotes } = data;
   const children = sortChildren(data.children);
   const executors = sortExecutors(data.executors);
 
@@ -80,7 +80,13 @@ function Review({ willId }) {
         <div style={sectionTitle}>
           Pensions <a href={`../pensions/?id=${willId}`} style={editLink}>Edit</a>
         </div>
-        <div style={body}>{pensions && !pensions.simple_mode ? pensions.provider || pensions.notes : "Handled simply (outside the Will)"}</div>
+        <div style={body}>
+          {pensions && !pensions.simple_mode
+            ? pensionEntries.length
+              ? pensionEntries.map((p) => p.provider || "Pension").join(", ")
+              : "Detailed mode selected — no pensions added yet"
+            : "Handled simply (outside the Will)"}
+        </div>
       </div>
 
       <div style={section}>
