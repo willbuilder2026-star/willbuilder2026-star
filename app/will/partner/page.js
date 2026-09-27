@@ -172,7 +172,12 @@ function PartnerForm({ willId, userId, onDirtyChange }) {
 function PartnerPageInner({ willId, userId }) {
   const [dirty, setDirty] = useState(false);
   return (
-    <WillPageFrame willId={willId} current={2} unsaved={dirty}>
+    <WillPageFrame
+      willId={willId}
+      current={2}
+      desc="Your partner's details, if you have one — used for the Family & Estate Map and anywhere you leave something to them specifically."
+      unsaved={dirty}
+    >
       <PartnerForm willId={willId} userId={userId} onDirtyChange={setDirty} />
     </WillPageFrame>
   );
