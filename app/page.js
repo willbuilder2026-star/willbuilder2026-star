@@ -1,158 +1,66 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient";
-
-const card = {
-  maxWidth: 420,
-  margin: "60px auto",
-  background: "#fff",
-  border: "1px solid #e3d9c8",
-  borderRadius: 14,
-  padding: 28,
+export const metadata = {
+  title: "Draft My Will — get your affairs sorted",
 };
-const input = {
-  width: "100%",
-  padding: "10px 12px",
-  marginTop: 6,
-  marginBottom: 14,
-  border: "1px solid #e3d9c8",
-  borderRadius: 8,
-  fontSize: 15,
-  boxSizing: "border-box",
-};
+
+const wrap = { maxWidth: 760, margin: "0 auto", padding: "0 20px" };
 const btn = {
-  width: "100%",
-  padding: "11px",
-  background: "#9c6b32",
-  color: "#fff8ee",
-  border: "none",
+  display: "inline-block",
+  padding: "12px 24px",
   borderRadius: 8,
   fontWeight: 600,
-  cursor: "pointer",
+  textDecoration: "none",
   fontSize: 15,
 };
-const label = { fontSize: 13, fontWeight: 600, color: "#7a7266" };
 
-export default function Home() {
-  const [session, setSession] = useState(null);
-  const [mode, setMode] = useState("signup"); // signup | login
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [wills, setWills] = useState([]);
+export default function Landing() {
+  return (
+    <div>
+      <header style={{ borderBottom: "1px solid #e3d9c8", padding: "16px 0" }}>
+        <div style={{ ...wrap, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontWeight: 700, fontSize: 18 }}>Draft My Will</div>
+          <a href="./app/" style={{ ...btn, background: "#f1e4d0", color: "#7a5225", padding: "8px 16px" }}>
+            Log in
+          </a>
+        </div>
+      </header>
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
-    });
-    return () => listener.subscription.unsubscribe();
-  }, []);
+      <section style={{ ...wrap, padding: "60px 20px 40px" }}>
+        <h1 style={{ fontSize: 34, lineHeight: 1.2, margin: 0 }}>
+          Get your affairs sorted. A simple Will, without the solicitor-sized bill.
+        </h1>
+        <p style={{ color: "#4a5867", fontSize: 17, marginTop: 18, lineHeight: 1.6 }}>
+          Answer a guided set of questions in plain English, see exactly how your estate will be split with a
+          live Family &amp; Estate Map, and get a proper Will document — covering England &amp; Wales,
+          Scotland and Northern Ireland.
+        </p>
+        <div style={{ marginTop: 28, display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <a href="./app/" style={{ ...btn, background: "#9c6b32", color: "#fff8ee" }}>
+            Start your Will
+          </a>
+          <a href="./app/" style={{ ...btn, background: "#f1e4d0", color: "#7a5225" }}>
+            Log in to an existing account
+          </a>
+        </div>
+      </section>
 
-  useEffect(() => {
-    if (session) loadWills();
-  }, [session]);
-
-  async function loadWills() {
-    const { data, error } = await supabase.from("wills").select("*").order("created_at", { ascending: false });
-    if (!error) setWills(data || []);
-  }
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setLoading(true);
-    setMessage("");
-    if (mode === "signup") {
-      const { error } = await supabase.auth.signUp({ email, password });
-      setMessage(error ? error.message : "Account created. Check your email if confirmation is required, otherwise you're signed in below.");
-    } else {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      setMessage(error ? error.message : "");
-    }
-    setLoading(false);
-  }
-
-  async function createDraftWill() {
-    const { data: userData } = await supabase.auth.getUser();
-    const user = userData.user;
-    if (!user) return;
-    const { error } = await supabase.from("wills").insert({
-      user_id: user.id,
-      jurisdiction: "england_wales",
-      status: "draft",
-    });
-    if (error) setMessage(error.message);
-    else loadWills();
-  }
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    setWills([]);
-  }
-
-  if (session) {
-    return (
-      <div style={card}>
-        <div style={{ fontSize: 13, color: "#7a7266", marginBottom: 8 }}>Signed in as</div>
-        <div style={{ fontWeight: 700, marginBottom: 20 }}>{session.user.email}</div>
-
-        <button style={btn} onClick={createDraftWill}>+ Create a draft Will row</button>
-
-        <div style={{ marginTop: 24 }}>
-          <div style={label}>YOUR WILLS TABLE (live from Supabase)</div>
-          {wills.length === 0 && <p style={{ color: "#7a7266", fontSize: 14 }}>No rows yet — click the button above.</p>}
-          {wills.map((w) => (
-            <div key={w.id} style={{ border: "1px solid #e3d9c8", borderRadius: 8, padding: 10, marginTop: 8, fontSize: 13 }}>
-              <div><b>id:</b> {w.id}</div>
-              <div><b>jurisdiction:</b> {w.jurisdiction}</div>
-              <div><b>status:</b> {w.status}</div>
-              <div><b>created:</b> {new Date(w.created_at).toLocaleString()}</div>
+      <section style={{ ...wrap, padding: "20px 20px 70px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+          {[
+            { h: "Answer at your own pace", p: "Save as you go and come back any time before you're ready to sign." },
+            { h: "See it laid out clearly", p: "A live map shows exactly who gets what, before you finish." },
+            { h: "30 days of free changes", p: "Made a mistake or changed your mind? Amend it free for the first month." },
+          ].map((c, i) => (
+            <div key={i} style={{ background: "#fff", border: "1px solid #e3d9c8", borderRadius: 12, padding: 18 }}>
+              <h3 style={{ fontSize: 16, margin: 0 }}>{c.h}</h3>
+              <p style={{ fontSize: 14, color: "#4a5867", marginTop: 8 }}>{c.p}</p>
             </div>
           ))}
         </div>
+      </section>
 
-        <button style={{ ...btn, background: "#f6e6dc", color: "#a8541f", marginTop: 24 }} onClick={signOut}>
-          Sign out
-        </button>
-      </div>
-    );
-  }
-
-  return (
-    <div style={card}>
-      <h1 style={{ fontSize: 22, marginBottom: 4 }}>Draft My Will</h1>
-      <p style={{ color: "#7a7266", fontSize: 14, marginBottom: 20 }}>
-        Real Supabase auth test. Creating an account here actually creates a row in your project's <code>auth.users</code> table.
-      </p>
-
-      <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-        <button
-          onClick={() => setMode("signup")}
-          style={{ ...btn, background: mode === "signup" ? "#9c6b32" : "#f1e4d0", color: mode === "signup" ? "#fff8ee" : "#7a5225" }}
-        >
-          Sign up
-        </button>
-        <button
-          onClick={() => setMode("login")}
-          style={{ ...btn, background: mode === "login" ? "#9c6b32" : "#f1e4d0", color: mode === "login" ? "#fff8ee" : "#7a5225" }}
-        >
-          Log in
-        </button>
-      </div>
-
-      <form onSubmit={handleSubmit}>
-        <label style={label}>Email</label>
-        <input style={input} type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        <label style={label}>Password</label>
-        <input style={input} type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} />
-        <button style={btn} type="submit" disabled={loading}>
-          {loading ? "Please wait…" : mode === "signup" ? "Create account" : "Log in"}
-        </button>
-      </form>
-
-      {message && <p style={{ marginTop: 14, fontSize: 13, color: "#a8541f" }}>{message}</p>}
+      <footer style={{ borderTop: "1px solid #e3d9c8", padding: "20px 0", textAlign: "center", color: "#7a7266", fontSize: 13 }}>
+        Not legal advice. Product test build — 27 September 2026.
+      </footer>
     </div>
   );
 }
