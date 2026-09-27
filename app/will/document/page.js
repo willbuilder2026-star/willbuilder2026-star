@@ -88,13 +88,23 @@ function Document({ willId }) {
       }
     }
 
+    // Splits on real line breaks FIRST (a multi-line address box has actual
+    // "\n" characters in it), then word-wraps each of those lines to width.
+    // Doing the "\n" split ourselves — rather than trusting splitTextToSize
+    // to handle it — is what actually fixes lines overlapping.
+    function wrapText(text, width) {
+      return text.split("\n").flatMap((part) => doc.splitTextToSize(part, width));
+    }
+
     // opening lines (born / address), left-aligned under the centered heading
     doc.setFont("times", "normal");
     doc.setFontSize(11);
     built.opening.slice(1).forEach((line) => {
-      ensureSpace(lineHeight);
-      doc.text(line, margin, y);
-      y += lineHeight;
+      wrapText(line, maxWidth).forEach((wrapped) => {
+        ensureSpace(lineHeight);
+        doc.text(wrapped, margin, y);
+        y += lineHeight;
+      });
     });
     y += 10;
 
@@ -108,7 +118,7 @@ function Document({ willId }) {
         y += 8;
         doc.setFont("times", "bold");
         doc.setFontSize(12);
-        doc.splitTextToSize(s.text, maxWidth).forEach((line) => {
+        wrapText(s.text, maxWidth).forEach((line) => {
           ensureSpace(lineHeight);
           doc.text(line, margin, y);
           y += lineHeight;
@@ -118,8 +128,7 @@ function Document({ willId }) {
         doc.setFont("times", "normal");
         doc.setFontSize(11);
         const bulletIndent = 16;
-        const wrapped = doc.splitTextToSize(s.text, maxWidth - bulletIndent);
-        wrapped.forEach((line, i) => {
+        wrapText(s.text, maxWidth - bulletIndent).forEach((line, i) => {
           ensureSpace(lineHeight);
           if (i === 0) doc.text("•", margin, y);
           doc.text(line, margin + bulletIndent, y);
@@ -128,7 +137,7 @@ function Document({ willId }) {
       } else {
         doc.setFont("times", "normal");
         doc.setFontSize(11);
-        doc.splitTextToSize(s.text, maxWidth).forEach((line) => {
+        wrapText(s.text, maxWidth).forEach((line) => {
           ensureSpace(lineHeight);
           doc.text(line, margin, y);
           y += lineHeight;
