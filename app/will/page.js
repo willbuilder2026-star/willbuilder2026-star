@@ -38,7 +38,7 @@ function WillStage1() {
   const params = useSearchParams();
   const willId = params.get("id");
 
-  const [session, setSession] = useState(undefined);
+  const [session, setSession] = useState(undefined); // undefined = loading
   const [loadingRow, setLoadingRow] = useState(true);
   const [saved, setSaved] = useState(false);
   const [message, setMessage] = useState("");
