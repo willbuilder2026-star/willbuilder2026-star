@@ -3,9 +3,132 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { isValidUKPostcode, normalisePostcode } from "../../lib/postcode";
+import { stageHref } from "../../lib/stages";
 import WillStageShell from "../../components/WillStageShell";
 import WillPageFrame from "../../components/WillPageFrame";
 import { input, label, btn } from "../../components/styles";
+
+const LINK_MODE_OPTIONS = [
+  ["basics_only", "Share our basic household details only", "Your name, address and who your partner is fill in automatically on their Will. Everything else — executors, gifts, beneficiaries — is answered separately for each of you."],
+  ["mirror", "Start both Wills as mirrors of each other", "Their Will starts as a copy of yours — same executors, gifts and beneficiaries, with \"my partner\" swapped to mean you instead. They can then edit or remove anything that isn't right for them."],
+];
+
+// Stage 1 opens with this: what kind of Will is being set up. A couple is
+// always given two separate legal Wills, never a single joint document —
+// this just decides whether, and how closely, the two are linked.
+function WillTypeForm({ willId }) {
+  const [loadingRow, setLoadingRow] = useState(true);
+  const [saved, setSaved] = useState(false);
+  const [message, setMessage] = useState("");
+  const [willType, setWillType] = useState("individual");
+  const [linkMode, setLinkMode] = useState("basics_only");
+  const [linkedWillId, setLinkedWillId] = useState(null);
+  const [linkedName, setLinkedName] = useState("");
+
+  useEffect(() => {
+    load();
+  }, [willId]);
+
+  async function load() {
+    setLoadingRow(true);
+    const { data } = await supabase.from("wills").select("will_type, link_mode, linked_will_id").eq("id", willId).maybeSingle();
+    if (data) {
+      setWillType(data.will_type || "individual");
+      setLinkMode(data.link_mode || "basics_only");
+      setLinkedWillId(data.linked_will_id || null);
+      if (data.linked_will_id) {
+        const { data: theirAbout } = await supabase.from("will_about").select("full_name").eq("will_id", data.linked_will_id).maybeSingle();
+        setLinkedName(theirAbout?.full_name || "");
+      }
+    }
+    setLoadingRow(false);
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+    setMessage("");
+    const { error } = await supabase
+      .from("wills")
+      .update({
+        will_type: willType,
+        link_mode: willType === "couple" ? linkMode : null,
+      })
+      .eq("id", willId);
+    if (error) {
+      setMessage(error.message);
+    } else {
+      setSaved(true);
+      setMessage("Saved.");
+      setTimeout(() => setSaved(false), 1800);
+    }
+  }
+
+  if (loadingRow) return <p>Loading…</p>;
+
+  return (
+    <div style={{ marginBottom: 26, paddingBottom: 22, borderBottom: "1px solid #e3d9c8" }}>
+      <h3 style={{ fontSize: 15, marginTop: 0, marginBottom: 4 }}>What are you setting up?</h3>
+      <p style={{ fontSize: 13.5, color: "#7a7266", marginTop: 0 }}>
+        A couple is always given two separate legal Wills, one each — never a single joint Will — but you can link
+        them so your partner isn't starting from a blank page.
+      </p>
+
+      {linkedWillId ? (
+        <div style={{ background: "#f1e4d0", border: "1px solid #e3d9c8", borderRadius: 10, padding: 14, fontSize: 13.5, marginTop: 10 }}>
+          🔗 This Will is linked with {linkedName ? `${linkedName}'s` : "your partner's"} Will.{" "}
+          <a href={stageHref("./", "", linkedWillId)} style={{ color: "#7a5225", fontWeight: 600 }}>
+            Continue their Will →
+          </a>
+        </div>
+      ) : (
+        <form onSubmit={handleSave}>
+          <select style={input} value={willType} onChange={(e) => setWillType(e.target.value)}>
+            <option value="individual">Just my own Will</option>
+            <option value="couple">Linked Wills for me and my partner</option>
+          </select>
+
+          {willType === "couple" && (
+            <div style={{ marginTop: 4, marginBottom: 6 }}>
+              {LINK_MODE_OPTIONS.map(([val, title, desc]) => (
+                <label
+                  key={val}
+                  style={{
+                    display: "block",
+                    border: `1px solid ${linkMode === val ? "#9c6b32" : "#e3d9c8"}`,
+                    background: linkMode === val ? "#faf3ea" : "#fff",
+                    borderRadius: 10,
+                    padding: 12,
+                    marginBottom: 8,
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                    <input type="radio" name="link_mode" checked={linkMode === val} onChange={() => setLinkMode(val)} style={{ marginTop: 3 }} />
+                    <div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700 }}>{title}</div>
+                      <div style={{ fontSize: 12.5, color: "#7a7266", marginTop: 2 }}>{desc}</div>
+                    </div>
+                  </div>
+                </label>
+              ))}
+              <p style={{ fontSize: 12.5, color: "#7a7266", marginTop: -2 }}>
+                Once you've saved this and added your partner's name on the next stage, you'll get an option there to
+                create their linked Will.
+              </p>
+            </div>
+          )}
+
+          <div style={{ display: "flex", justifyContent: "flex-end" }}>
+            <button style={btn} type="submit">
+              {saved ? "Saved ✓" : "Save"}
+            </button>
+          </div>
+          {message && !saved && <p style={{ marginTop: 12, fontSize: 13, color: "#a8541f" }}>{message}</p>}
+        </form>
+      )}
+    </div>
+  );
+}
 
 function AboutForm({ willId, userId, onDirtyChange }) {
   const [loadingRow, setLoadingRow] = useState(true);
@@ -129,9 +252,10 @@ function AboutPageInner({ willId, userId }) {
     <WillPageFrame
       willId={willId}
       current={1}
-      desc="The same core details are used for whichever jurisdiction you picked, so this is only entered once."
+      desc="Choose the kind of Will you're setting up, then the same core details are used for whichever jurisdiction you picked."
       unsaved={dirty}
     >
+      <WillTypeForm willId={willId} />
       <AboutForm willId={willId} userId={userId} onDirtyChange={setDirty} />
     </WillPageFrame>
   );
