@@ -3,26 +3,29 @@
 import StageSidebar from "./StageSidebar";
 import StageHeader from "./StageHeader";
 import StageNav from "./StageNav";
+import StageTopBar from "./StageTopBar";
 import { STAGES } from "../lib/stages";
 import { card, eyebrow } from "./styles";
 
-// Wraps every stage page: sidebar + heading + your content + back/continue
-// nav, plus an "unsaved changes" banner when unsaved={true} is passed.
+// Wraps every stage page: top bar + sidebar + heading + your content +
+// back/continue nav, plus an "unsaved changes" banner when unsaved={true}.
 export default function WillPageFrame({ willId, current, desc, unsaved, nextLabel, children }) {
   const stage = STAGES.find((s) => s.n === current);
   const base = current === 1 ? "./" : "../";
 
   return (
-    <div
-      style={{
-        maxWidth: 960,
-        margin: "30px auto",
-        display: "flex",
-        gap: 24,
-        alignItems: "flex-start",
-        padding: "0 16px 40px",
-      }}
-    >
+    <div>
+      <StageTopBar base={base} />
+      <div
+        style={{
+          maxWidth: 960,
+          margin: "14px auto 30px",
+          display: "flex",
+          gap: 24,
+          alignItems: "flex-start",
+          padding: "0 16px 40px",
+        }}
+      >
       <StageSidebar base={base} current={current} willId={willId} />
       <div style={{ ...card, flex: 1, minWidth: 0 }}>
         <StageHeader n={current} title={stage.label} desc={desc} />
@@ -46,6 +49,7 @@ export default function WillPageFrame({ willId, current, desc, unsaved, nextLabe
         )}
 
         <StageNav current={current} base={base} willId={willId} nextLabel={nextLabel} />
+      </div>
       </div>
     </div>
   );

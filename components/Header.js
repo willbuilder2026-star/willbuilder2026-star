@@ -14,12 +14,23 @@ const cta = {
 // "../" when this page lives one folder deep (app/contact/page.js, app/pricing/page.js, etc.)
 export default function Header({ base = "./" }) {
   return (
-    <header style={{ borderBottom: "1px solid #e3d9c8", padding: "16px 0", background: "#faf7f1" }}>
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        background: "rgba(250, 247, 241, 0.88)",
+        backdropFilter: "blur(10px)",
+        WebkitBackdropFilter: "blur(10px)",
+        borderBottom: "1px solid #e3d9c8",
+      }}
+    >
       <div
         style={{
-          maxWidth: 1000,
+          maxWidth: 1080,
           margin: "0 auto",
           padding: "0 20px",
+          height: 58,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
@@ -27,7 +38,24 @@ export default function Header({ base = "./" }) {
           gap: 12,
         }}
       >
-        <a href={base} style={{ fontWeight: 700, fontSize: 18, color: "#1c2b3a", textDecoration: "none" }}>
+        <a href={base} style={{ display: "flex", alignItems: "center", gap: 9, fontFamily: "'Fraunces', serif", fontWeight: 600, fontSize: 17, color: "#1c2b3a", textDecoration: "none" }}>
+          <span
+            style={{
+              width: 26,
+              height: 26,
+              borderRadius: 6,
+              background: "linear-gradient(155deg, #9c6b32, #7a5225)",
+              color: "#fff8ee",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: 13,
+              fontWeight: 700,
+              flex: "none",
+            }}
+          >
+            D
+          </span>
           Draft My Will
         </a>
         <nav style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
