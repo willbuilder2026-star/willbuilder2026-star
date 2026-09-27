@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchWillData, JURISDICTION_LABELS } from "../../../lib/willData";
-import { formatUKDate } from "../../../lib/willText";
+import { formatUKDate, sortChildren, sortExecutors } from "../../../lib/willText";
 import WillStageShell from "../../../components/WillStageShell";
 import WillPageFrame from "../../../components/WillPageFrame";
 
@@ -20,7 +20,9 @@ function Review({ willId }) {
 
   if (!data) return <p>Loading your answers…</p>;
 
-  const { will, about, partner, children, guardians, executors, properties, pensions, gifts, charityGifts, beneficiaries, adminNotes } = data;
+  const { will, about, partner, guardians, properties, pensions, gifts, charityGifts, beneficiaries, adminNotes } = data;
+  const children = sortChildren(data.children);
+  const executors = sortExecutors(data.executors);
 
   return (
     <div>

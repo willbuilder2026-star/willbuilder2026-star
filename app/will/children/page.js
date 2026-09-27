@@ -32,7 +32,8 @@ export default function ChildrenPage() {
             table="guardians"
             fields={[
               { key: "name", label: "Guardian's full name", type: "text" },
-              { key: "address", label: "Guardian's address", type: "textarea" },
+              { key: "address", label: "Guardian's address (excluding postcode)", type: "textarea" },
+              { key: "postcode", label: "Postcode", type: "postcode" },
             ]}
           />
         </WillPageFrame>

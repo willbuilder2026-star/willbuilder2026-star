@@ -20,7 +20,8 @@ export default function ExecutorsPage() {
             emptyLabel="No executors added yet."
             fields={[
               { key: "name", label: "Executor's full name", type: "person" },
-              { key: "address", label: "Executor's address", type: "textarea" },
+              { key: "address", label: "Executor's address (excluding postcode)", type: "textarea" },
+              { key: "postcode", label: "Postcode", type: "postcode" },
               {
                 key: "role",
                 label: "Role",
