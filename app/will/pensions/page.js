@@ -79,7 +79,12 @@ function PensionsPageInner({ willId, userId }) {
   const [dirty, setDirty] = useState(false);
   const [simpleMode, setSimpleMode] = useState(true);
   return (
-    <WillPageFrame willId={willId} current={6} unsaved={dirty}>
+    <WillPageFrame
+      willId={willId}
+      current={6}
+      desc="Pensions and death-in-service benefits — usually paid via a separate nomination form with your provider rather than through your Will itself, but you can list them here for reference."
+      unsaved={dirty}
+    >
       <ModeForm willId={willId} userId={userId} onDirtyChange={setDirty} simpleMode={simpleMode} setSimpleMode={setSimpleMode} />
       {!simpleMode && (
         <ListStage
